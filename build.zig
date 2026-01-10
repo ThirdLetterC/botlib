@@ -44,15 +44,17 @@ pub fn build(b: *std.Build) void {
 
     exe.addCSourceFiles(.{
         .files = &.{
-            "parson.c",
-            "sds.c",
-            "json_wrap.c",
-            "sqlite_wrap.c",
-            "botlib.c",
-            "mybot.c",
+            "src/parson.c",
+            "src/sds.c",
+            "src/json_wrap.c",
+            "src/sqlite_wrap.c",
+            "src/botlib.c",
+            "src/mybot.c",
         },
         .flags = flags,
     });
+
+    exe.root_module.addIncludePath(b.path("src/include"));
 
     exe.linkSystemLibrary("pthread");
     exe.linkSystemLibrary("curl");
