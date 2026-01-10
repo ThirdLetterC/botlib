@@ -49,7 +49,8 @@ enum {
 #define static_assert _Static_assert
 #endif
 
-#ifndef __cplusplus
+#if !defined(__cplusplus) && \
+    (!defined(__STDC_VERSION__) || (__STDC_VERSION__ < 202000L))
 #define constexpr const
 #endif
 
