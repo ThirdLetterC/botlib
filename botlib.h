@@ -71,17 +71,20 @@ void xfree(void *ptr);
 
 /* Telegram bot API. */
 
-int startBot(const char *createdb_query, int argc, char **argv, int flags,
-             TBRequestCallback req_callback, TBCronCallback cron_callback,
-             char **triggers);
-sds makeGETBotRequest(const char *action, int *resptr, char **optlist,
-                      int numopt);
-int botSendMessageAndGetInfo(int64_t target, sds text, int64_t reply_to,
-                             int64_t *chat_id, int64_t *message_id);
-int botSendMessage(int64_t target, sds text, int64_t reply_to);
-int botEditMessageText(int64_t chat_id, int message_id, sds text);
-int botSendImage(int64_t target, char *filename);
-int botGetFile(BotRequest *br, const char *target_filename);
+[[nodiscard]] int startBot(const char *createdb_query, int argc, char **argv,
+                           int flags, TBRequestCallback req_callback,
+                           TBCronCallback cron_callback, char **triggers);
+[[nodiscard]] sds makeGETBotRequest(const char *action, int *resptr,
+                                    char **optlist, int numopt);
+[[nodiscard]] int botSendMessageAndGetInfo(int64_t target, sds text,
+                                           int64_t reply_to,
+                                           int64_t *chat_id,
+                                           int64_t *message_id);
+[[nodiscard]] int botSendMessage(int64_t target, sds text, int64_t reply_to);
+[[nodiscard]] int botEditMessageText(int64_t chat_id, int message_id,
+                                     sds text);
+[[nodiscard]] int botSendImage(int64_t target, char *filename);
+[[nodiscard]] int botGetFile(BotRequest *br, const char *target_filename);
 char *botGetUsername();
 void freeBotRequest(BotRequest *br);
 

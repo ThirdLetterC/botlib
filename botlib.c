@@ -249,7 +249,7 @@ size_t makeHTTPGETCallWriterFILE(char *ptr, [[maybe_unused]] size_t size,
  * will be set, by reference, to 1 or 0 to indicate success or error.
  * The returned SDS string must be freed by the caller both in case of
  * error and success. */
-sds makeHTTPGETCall(const char *url, int *resptr) {
+[[nodiscard]] sds makeHTTPGETCall(const char *url, int *resptr) {
   if (Bot.debug)
     printf("HTTP GET %s\n", url);
   CURL *curl;
@@ -293,8 +293,8 @@ sds makeHTTPGETCall(const char *url, int *resptr) {
  * the URL as a query string, and URL encoded as needed.
  * The option list array should contain optnum*2 strings, alternating
  * option names and values. */
-sds makeHTTPGETCallOpt(const char *url, int *resptr, char **optlist,
-                       int optnum) {
+[[nodiscard]] sds makeHTTPGETCallOpt(const char *url, int *resptr,
+                                     char **optlist, int optnum) {
   sds fullurl = sdsnew(url);
   if (optnum)
     fullurl = sdscatlen(fullurl, "?", 1);
@@ -319,8 +319,8 @@ sds makeHTTPGETCallOpt(const char *url, int *resptr, char **optlist,
  * action name. This is a low level API that is used by other bot APIs
  * in order to do higher level work. 'resptr' works the same as in
  * makeHTTPGETCall(). */
-sds makeGETBotRequest(const char *action, int *resptr, char **optlist,
-                      int numopt) {
+[[nodiscard]] sds makeGETBotRequest(const char *action, int *resptr,
+                                    char **optlist, int numopt) {
   sds url = sdsnew("https://api.telegram.org/bot");
   url = sdscat(url, Bot.apikey);
   url = sdscatlen(url, "/", 1);
@@ -332,7 +332,7 @@ sds makeGETBotRequest(const char *action, int *resptr, char **optlist,
 
 /* Send an image using the sendPhoto endpoint. Return 1 on success, 0
  * on error. */
-int botSendImage(int64_t target, char *filename) {
+[[nodiscard]] int botSendImage(int64_t target, char *filename) {
   CURLcode res;
   int retval = 0;
   sds strtarget = sdsfromlonglong(target);
@@ -430,8 +430,10 @@ char *botGetUsername() {
 /* Send a message to the specified channel, optionally as a reply to a
  * specific message (if reply_to is non zero).
  * Return 1 on success, 0 on error. */
-int botSendMessageAndGetInfo(int64_t target, sds text, int64_t reply_to,
-                             int64_t *chat_id, int64_t *message_id) {
+[[nodiscard]] int botSendMessageAndGetInfo(int64_t target, sds text,
+                                           int64_t reply_to,
+                                           int64_t *chat_id,
+                                           int64_t *message_id) {
   char *options[10];
   int optlen = 4;
   options[0] = "chat_id";
@@ -476,14 +478,15 @@ int botSendMessageAndGetInfo(int64_t target, sds text, int64_t reply_to,
  * the chat and message IDs that are only useful if you want to
  * edit the message later.
  * Return 1 on success, 0 on error. */
-int botSendMessage(int64_t target, sds text, int64_t reply_to) {
+[[nodiscard]] int botSendMessage(int64_t target, sds text, int64_t reply_to) {
   return botSendMessageAndGetInfo(target, text, reply_to, nullptr, nullptr);
 }
 
 /* Send a message to the specified channel, optionally as a reply to a
  * specific message (if reply_to is non zero).
  * Return 1 on success, 0 on error. */
-int botEditMessageText(int64_t chat_id, int message_id, sds text) {
+[[nodiscard]] int botEditMessageText(int64_t chat_id, int message_id,
+                                     sds text) {
   char *options[10];
   int optlen = 5;
   options[0] = "chat_id";
@@ -514,7 +517,7 @@ int botEditMessageText(int64_t chat_id, int message_id, sds text) {
  * On success 1 is returned, otherwise 0.
  * When the function returns successfully, the caller can access
  * a file named 'br->file_id'. */
-int botGetFile(BotRequest *br, const char *target_filename) {
+[[nodiscard]] int botGetFile(BotRequest *br, const char *target_filename) {
   /* 1. Get the file information and path. */
   char *options[2];
   options[0] = "file_id";
@@ -892,9 +895,9 @@ void resetBotStats() {
   botStats.queries = 0;
 }
 
-int startBot(const char *createdb_query, int argc, char **argv, int flags,
-             TBRequestCallback req_callback, TBCronCallback cron_callback,
-             char **triggers) {
+[[nodiscard]] int startBot(const char *createdb_query, int argc, char **argv,
+                           int flags, TBRequestCallback req_callback,
+                           TBCronCallback cron_callback, char **triggers) {
   srand(time(nullptr));
 
   Bot.debug = 0;

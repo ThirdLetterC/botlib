@@ -23,14 +23,17 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
 
   int64_t sent_chat_id = 0;
   int64_t sent_message_id = 0;
-  botSendMessageAndGetInfo(br->target, buf, 0, &sent_chat_id, &sent_message_id);
+  [[maybe_unused]] int sent_ok =
+      botSendMessageAndGetInfo(br->target, buf, 0, &sent_chat_id,
+                               &sent_message_id);
   printf("Sent message IDs: chat_id:%lld message_id:%lld\n",
          (long long)sent_chat_id, (long long)sent_message_id);
 
   /* Edit message after 1 second. */
   sleep(1);
   snprintf(buf, sizeof(buf), "I just %s received: %s :D", where, br->request);
-  botEditMessageText(sent_chat_id, sent_message_id, buf);
+  [[maybe_unused]] int edited =
+      botEditMessageText(sent_chat_id, sent_message_id, buf);
 
   /* Words received in this request. */
   for (int j = 0; j < br->argc; j++)
@@ -46,7 +49,7 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
   /* Show if the message has a voice file inside. */
   if (br->file_type == TB_FILE_TYPE_VOICE_OGG) {
     printf("Voice file ID: %s\n", br->file_id);
-    botGetFile(br, "audio.oga");
+    [[maybe_unused]] int got = botGetFile(br, "audio.oga");
   }
 
   /* Let's use our key-value store API on top of Sqlite. If the
@@ -58,7 +61,8 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
     /* Note that in this case we don't use 0 as "from" field, so
      * we are sending a reply to the user, not a general message
      * on the channel. */
-    botSendMessage(br->target, "Ok, I'll remember.", br->msg_id);
+    [[maybe_unused]] int sent_store =
+        botSendMessage(br->target, "Ok, I'll remember.", br->msg_id);
   }
 
   const size_t reqlen = strlen(br->request);
@@ -71,7 +75,8 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
     printf("Looking for key %s\n", copy);
     sds res = kvGet(dbhandle, copy);
     if (res != nullptr) {
-      botSendMessage(br->target, res, 0);
+      [[maybe_unused]] int sent =
+          botSendMessage(br->target, res, 0);
     }
     sdsfree(res);
     free(copy);
@@ -88,7 +93,6 @@ int main(int argc, char **argv) {
   static char *triggers[] = {
       "Echo *", "Hi!", "* is *", "*\?", "!ls", nullptr,
   };
-  startBot(TB_CREATE_KV_STORE, argc, argv, TB_FLAGS_NONE, handleRequest, cron,
-           triggers);
-  return 0; /* Never reached. */
+  return startBot(TB_CREATE_KV_STORE, argc, argv, TB_FLAGS_NONE, handleRequest,
+                  cron, triggers);
 }
