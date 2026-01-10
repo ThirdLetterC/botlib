@@ -108,7 +108,11 @@ static inline bool is_number_invalid(double value) {
 #endif
 }
 
-static JSON_Malloc_Function parson_malloc = malloc;
+[[nodiscard]] static void *parson_default_alloc(size_t size) {
+  return calloc(1, size);
+}
+
+static JSON_Malloc_Function parson_malloc = parson_default_alloc;
 static JSON_Free_Function parson_free = free;
 
 static bool parson_escape_slashes = true;

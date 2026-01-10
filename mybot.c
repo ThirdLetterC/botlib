@@ -54,7 +54,7 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
    * foo key to bar. Then if somebody write "foo?" and we have an
    * associated key, we reply with what "foo" is. */
   if (br->argc >= 3 && !strcasecmp(br->argv[1], "is")) {
-    kvSet(dbhandle, br->argv[0], br->request, 0);
+    [[maybe_unused]] bool stored = kvSet(dbhandle, br->argv[0], br->request, 0);
     /* Note that in this case we don't use 0 as "from" field, so
      * we are sending a reply to the user, not a general message
      * on the channel. */

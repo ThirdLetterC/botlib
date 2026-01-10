@@ -172,7 +172,7 @@ int strmatch(const char *pattern, int patternLen, const char *string,
         pattern++;
         patternLen--;
       }
-      /* fall through */
+      [[fallthrough]];
     default:
       if (!nocase) {
         if (pattern[0] != string[0])
@@ -205,16 +205,16 @@ int strmatch(const char *pattern, int patternLen, const char *string,
  * ========================================================================= */
 
 void *xmalloc(size_t size) {
-  void *p = malloc(size);
+  auto p = calloc(1, size);
   if (p == nullptr) {
-    printf("Out of memory: malloc(%zu)", size);
+    printf("Out of memory: calloc(%zu, 1)", size);
     exit(1);
   }
   return p;
 }
 
 void *xrealloc(void *ptr, size_t size) {
-  void *p = realloc(ptr, size);
+  auto p = realloc(ptr, size);
   if (p == nullptr) {
     printf("Out of memory: realloc(%zu)", size);
     exit(1);

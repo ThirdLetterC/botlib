@@ -86,19 +86,21 @@ char *botGetUsername();
 void freeBotRequest(BotRequest *br);
 
 /* Database. */
-bool kvSetLen(sqlite3 *dbhandle, const char *key, const char *value,
-              size_t vlen, int64_t expire);
-bool kvSet(sqlite3 *dbhandle, const char *key, const char *value,
-           int64_t expire);
+[[nodiscard]] bool kvSetLen(sqlite3 *dbhandle, const char *key,
+                            const char *value, size_t vlen, int64_t expire);
+[[nodiscard]] bool kvSet(sqlite3 *dbhandle, const char *key, const char *value,
+                         int64_t expire);
 [[nodiscard]] sds kvGet(sqlite3 *dbhandle, const char *key);
 void kvDel(sqlite3 *dbhandle, const char *key);
 void sqlEnd(sqlRow *row);
-bool sqlNextRow(sqlRow *row);
-int64_t sqlInsert(sqlite3 *dbhandle, const char *sql, ...);
-bool sqlQuery(sqlite3 *dbhandle, const char *sql, ...);
-int sqlSelect(sqlite3 *dbhandle, sqlRow *row, const char *sql, ...);
-int sqlSelectOneRow(sqlite3 *dbhandle, sqlRow *row, const char *sql, ...);
-int64_t sqlSelectInt(sqlite3 *dbhandle, const char *sql, ...);
+[[nodiscard]] bool sqlNextRow(sqlRow *row);
+[[nodiscard]] int64_t sqlInsert(sqlite3 *dbhandle, const char *sql, ...);
+[[nodiscard]] bool sqlQuery(sqlite3 *dbhandle, const char *sql, ...);
+[[nodiscard]] int sqlSelect(sqlite3 *dbhandle, sqlRow *row, const char *sql,
+                            ...);
+[[nodiscard]] int sqlSelectOneRow(sqlite3 *dbhandle, sqlRow *row,
+                                  const char *sql, ...);
+[[nodiscard]] int64_t sqlSelectInt(sqlite3 *dbhandle, const char *sql, ...);
 
 /* Json */
 [[nodiscard]] JSON_Value *json_select(JSON_Value *value, const char *fmt, ...);

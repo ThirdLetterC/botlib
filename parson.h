@@ -33,14 +33,13 @@ extern "C" {
 } /* unconfuse xcode */
 #endif
 
-#include <stdbool.h>
 #include <stddef.h> /* size_t */
 #include <stdint.h>
 
-#define PARSON_VERSION_MAJOR 1
-#define PARSON_VERSION_MINOR 5
-#define PARSON_VERSION_PATCH 3
-#define PARSON_VERSION_STRING "1.5.3"
+static constexpr int PARSON_VERSION_MAJOR = 1;
+static constexpr int PARSON_VERSION_MINOR = 5;
+static constexpr int PARSON_VERSION_PATCH = 3;
+static constexpr char PARSON_VERSION_STRING[] = "1.5.3";
 
 /* Types and enums */
 typedef struct json_object_t JSON_Object;
@@ -79,7 +78,8 @@ typedef void (*JSON_Free_Function)(void *);
 typedef int (*JSON_Number_Serialization_Function)(double num, char *buf);
 
 /* Call only once, before calling any other function from parson API. If not
-   called, malloc and free from stdlib will be used for all allocations */
+   called, calloc (1, size) and free from stdlib will be used for all
+   allocations. */
 void json_set_allocation_functions(JSON_Malloc_Function malloc_fun,
                                    JSON_Free_Function free_fun);
 
