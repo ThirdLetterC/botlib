@@ -19,3 +19,8 @@ build-sanitize:
 
 clean:
     rm -rf {{target}} zig-out .zig-cache mybot
+
+format:
+    clang-format -i *.c *.h
+
+fmt: format

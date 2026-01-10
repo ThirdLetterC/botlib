@@ -1,13 +1,13 @@
 #ifndef TELEGRAM_BOT_H
 #define TELEGRAM_BOT_H
 
+#include <sqlite3.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <sqlite3.h>
 
+#include "parson.h"
 #include "sds.h"
 #include "sqlite_wrap.h"
-#include "parson.h"
 
 static constexpr int TB_FLAGS_NONE = 0;
 static constexpr int TB_FLAGS_IGNORE_BAD_ARG = 1 << 0;
@@ -15,22 +15,22 @@ static constexpr int TB_FLAGS_IGNORE_BAD_ARG = 1 << 0;
 /* This structure is passed to the thread processing a given user request,
  * it's up to the thread to free it once it is done. */
 typedef struct BotRequest {
-    int type;           /* TB_TYPE_PRIVATE, ... */
-    sds request;        /* The request string. */
-    int64_t from;       /* ID of user sending the message. */
-    sds from_username;  /* Username of the user sending the message. */
-    int64_t target;     /* Target channel/user where to reply. */
-    int64_t msg_id;     /* Message ID. */
-    sds *argv;          /* Request split to single words. */
-    int argc;           /* Number of words. */
-    int file_type;      /* TB_FILE_TYPE_* */
-    sds file_id;        /* File ID if a file is present in the message.
-                         * The file format will be given by file_type. */
-    int64_t file_size;  /* Size of the file. */
-    bool bot_mentioned; /* True if the bot was explicitly mentioned. */
-    sds *mentions;      /* List of mentioned usernames. nullptr if there
-                           are no mentions. */
-    int num_mentions;   /* Number of elements in 'mentions' array. */
+  int type;           /* TB_TYPE_PRIVATE, ... */
+  sds request;        /* The request string. */
+  int64_t from;       /* ID of user sending the message. */
+  sds from_username;  /* Username of the user sending the message. */
+  int64_t target;     /* Target channel/user where to reply. */
+  int64_t msg_id;     /* Message ID. */
+  sds *argv;          /* Request split to single words. */
+  int argc;           /* Number of words. */
+  int file_type;      /* TB_FILE_TYPE_* */
+  sds file_id;        /* File ID if a file is present in the message.
+                       * The file format will be given by file_type. */
+  int64_t file_size;  /* Size of the file. */
+  bool bot_mentioned; /* True if the bot was explicitly mentioned. */
+  sds *mentions;      /* List of mentioned usernames. nullptr if there
+                         are no mentions. */
+  int num_mentions;   /* Number of elements in 'mentions' array. */
 } BotRequest;
 
 /* Bot callback type. This must be registed when the bot is initialized.
@@ -54,8 +54,8 @@ static constexpr int TB_FILE_TYPE_VOICE_OGG = 1;
  * DB query for Sqlite database initialization. */
 static constexpr char TB_CREATE_KV_STORE[] =
     "CREATE TABLE IF NOT EXISTS KeyValue(expire INT, "
-                                        "key TEXT, "
-                                        "value BLOB);"
+    "key TEXT, "
+    "value BLOB);"
     "CREATE UNIQUE INDEX IF NOT EXISTS idx_kv_key ON KeyValue(key);"
     "CREATE INDEX IF NOT EXISTS idx_ex_key ON KeyValue(expire);";
 
@@ -65,14 +65,19 @@ static constexpr char TB_CREATE_KV_STORE[] =
 void xfree(void *ptr);
 
 /* HTTP */
-[[nodiscard]] sds makeHTTPGETCallOpt(const char *url, int *resptr, char **optlist, int optnum);
+[[nodiscard]] sds makeHTTPGETCallOpt(const char *url, int *resptr,
+                                     char **optlist, int optnum);
 [[nodiscard]] sds makeHTTPGETCall(const char *url, int *resptr);
 
 /* Telegram bot API. */
 
-int startBot(const char *createdb_query, int argc, char **argv, int flags, TBRequestCallback req_callback, TBCronCallback cron_callback, char **triggers);
-sds makeGETBotRequest(const char *action, int *resptr, char **optlist, int numopt);
-int botSendMessageAndGetInfo(int64_t target, sds text, int64_t reply_to, int64_t *chat_id, int64_t *message_id);
+int startBot(const char *createdb_query, int argc, char **argv, int flags,
+             TBRequestCallback req_callback, TBCronCallback cron_callback,
+             char **triggers);
+sds makeGETBotRequest(const char *action, int *resptr, char **optlist,
+                      int numopt);
+int botSendMessageAndGetInfo(int64_t target, sds text, int64_t reply_to,
+                             int64_t *chat_id, int64_t *message_id);
 int botSendMessage(int64_t target, sds text, int64_t reply_to);
 int botEditMessageText(int64_t chat_id, int message_id, sds text);
 int botSendImage(int64_t target, char *filename);
@@ -81,8 +86,10 @@ char *botGetUsername();
 void freeBotRequest(BotRequest *br);
 
 /* Database. */
-bool kvSetLen(sqlite3 *dbhandle, const char *key, const char *value, size_t vlen, int64_t expire);
-bool kvSet(sqlite3 *dbhandle, const char *key, const char *value, int64_t expire);
+bool kvSetLen(sqlite3 *dbhandle, const char *key, const char *value,
+              size_t vlen, int64_t expire);
+bool kvSet(sqlite3 *dbhandle, const char *key, const char *value,
+           int64_t expire);
 [[nodiscard]] sds kvGet(sqlite3 *dbhandle, const char *key);
 void kvDel(sqlite3 *dbhandle, const char *key);
 void sqlEnd(sqlRow *row);

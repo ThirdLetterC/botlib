@@ -33,9 +33,9 @@ extern "C" {
 } /* unconfuse xcode */
 #endif
 
+#include <stdbool.h>
 #include <stddef.h> /* size_t */
 #include <stdint.h>
-#include <stdbool.h>
 
 #define PARSON_VERSION_MAJOR 1
 #define PARSON_VERSION_MINOR 5

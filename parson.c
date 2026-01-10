@@ -36,6 +36,7 @@ enum {
   PARSON_IMPL_VERSION_PATCH = 3
 };
 
+#include <assert.h>
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
@@ -43,13 +44,12 @@ enum {
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h>
 
 #ifndef static_assert
 #define static_assert _Static_assert
 #endif
 
-#if !defined(__cplusplus) && \
+#if !defined(__cplusplus) &&                                                   \
     (!defined(__STDC_VERSION__) || (__STDC_VERSION__ < 202000L))
 #define constexpr const
 #endif
