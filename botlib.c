@@ -235,19 +235,15 @@ void xfree(void *ptr) {
 
 /* The callback concatenating data arriving from CURL http requests into
  * a target SDS string. */
-size_t makeHTTPGETCallWriterSDS(char *ptr, size_t size, size_t nmemb, void *userdata)
-{
-    UNUSED(size);
-    sds *body = userdata;
+size_t makeHTTPGETCallWriterSDS(char *ptr, [[maybe_unused]] size_t size, size_t nmemb, void *userdata) {
+    sds *body = (sds *)userdata;
     *body = sdscatlen(*body,ptr,nmemb);
     return nmemb;
 }
 
 /* The callback writing the CURL reply to a file. */
-size_t makeHTTPGETCallWriterFILE(char *ptr, size_t size, size_t nmemb, void *userdata)
-{
-    UNUSED(size);
-    FILE **fp = userdata;
+size_t makeHTTPGETCallWriterFILE(char *ptr, [[maybe_unused]] size_t size, size_t nmemb, void *userdata) {
+    FILE **fp = (FILE **)userdata;
     return fwrite(ptr,1,nmemb,*fp);
 }
 
@@ -403,7 +399,7 @@ cleanup:
  * ===========================================================================*/
 
 /* Return the bot username. */
-char *botGetUsername(void) {
+char *botGetUsername() {
     int res;
 
     if (Bot.username) return Bot.username;
@@ -576,7 +572,7 @@ void freeBotRequest(BotRequest *br) {
 }
 
 /* Create a bot request object and return it to the caller. */
-BotRequest *createBotRequest(void) {
+BotRequest *createBotRequest() {
     BotRequest *br = calloc(1, sizeof(*br));
     if (br == nullptr) {
         printf("Out of memory: BotRequest\n");
@@ -593,7 +589,7 @@ BotRequest *createBotRequest(void) {
 
 /* Create the SQLite tables if needed (if createdb is true), and return
  * the SQLite database handle. Return nullptr on error. */
-sqlite3 *dbInit(char *createdb_query) {
+sqlite3 *dbInit(const char *createdb_query) {
     sqlite3 *db;
     int rt = sqlite3_open(Bot.dbfile, &db);
     if (rt != SQLITE_OK) {
@@ -604,7 +600,7 @@ sqlite3 *dbInit(char *createdb_query) {
 
     if (createdb_query) {
         char *errmsg;
-        int rc = sqlite3_exec(db, createdb_query, 0, 0, &errmsg);
+        int rc = sqlite3_exec(db, createdb_query, nullptr, nullptr, &errmsg);
         if (rc != SQLITE_OK) {
             fprintf(stderr, "SQL error [%d]: %s\n", rc, errmsg);
             sqlite3_free(errmsg);
@@ -617,7 +613,7 @@ sqlite3 *dbInit(char *createdb_query) {
 
 /* Should be called every time a thread exits, so that if the thread has
  * an SQLite thread-local handle, it gets closed. */
-void dbClose(void) {
+void dbClose() {
     if (DbHandle) sqlite3_close(DbHandle);
     DbHandle = nullptr;
 }
@@ -779,7 +775,7 @@ int64_t botProcessUpdates(int64_t offset, int timeout) {
                             br->mentions[br->num_mentions-1] = mention;
                             /* Is the user addressing the bot? Set the flag. */
                             if (Bot.username && !strcmp(Bot.username,mention+1))
-                                br->bot_mentioned = 1;
+                                br->bot_mentioned = true;
                     }
                 }
             }
@@ -818,7 +814,7 @@ fmterr:
  * mode, but with a timeout. Then we serve requests as needed, and every
  * time we unblock, we check for completed requests (by the thread that
  * handles Yahoo Finance API calls). */
-void botMain(void) {
+void botMain() {
     int64_t nextid = -100; /* Start getting the last 100 messages. */
     int previd;
 
@@ -838,7 +834,7 @@ void botMain(void) {
 /* Check if a file named 'apikey.txt' exists, if so load the Telegram bot
  * API key from there. If the function is able to read the API key from
  * the file, as a side effect the global SDS string Bot.apikey is populated. */
-void readApiKeyFromFile(void) {
+void readApiKeyFromFile() {
     FILE *fp = fopen("apikey.txt","r");
     if (fp == nullptr) return;
     char buf[1024];
@@ -853,12 +849,12 @@ void readApiKeyFromFile(void) {
     Bot.apikey = sdstrim(Bot.apikey," \t\r\n");
 }
 
-void resetBotStats(void) {
+void resetBotStats() {
     botStats.start_time = time(nullptr);
     botStats.queries = 0;
 }
 
-int startBot(char *createdb_query, int argc, char **argv, int flags, TBRequestCallback req_callback, TBCronCallback cron_callback, char **triggers) {
+int startBot(const char *createdb_query, int argc, char **argv, int flags, TBRequestCallback req_callback, TBCronCallback cron_callback, char **triggers) {
     srand(time(nullptr));
 
     Bot.debug = 0;

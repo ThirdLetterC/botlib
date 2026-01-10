@@ -17,7 +17,7 @@ enum {
     JSEL_TYPECHECK = 3 /* ":" */
 };
 
-static const size_t JSEL_MAX_TOKEN = 256;
+static constexpr size_t JSEL_MAX_TOKEN = 256;
 
 static bool json_type_matches(const JSON_Value *value, char typecode) {
     const JSON_Value_Type t = json_value_get_type(value);

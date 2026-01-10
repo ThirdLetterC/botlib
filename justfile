@@ -8,7 +8,14 @@ target := "mybot"
 # Build the bot executable (default recipe)
 build:
     libs="{{base_libs}}"; if [[ "{{arch}}" == aarch64* || "{{arch}}" == armv* ]]; then libs="$libs -latomic"; fi; \
-    ${CC:-cc} -g -ggdb -O2 -Wall -Wextra -Wpedantic -Werror -std=c2x {{sources}} mybot.c -o {{target}} $libs
+    cflags="-g -ggdb -O2 -Wall -Wextra -Wpedantic -Werror -std=c2x"; \
+    ${CC:-cc} $cflags {{sources}} mybot.c -o {{target}} $libs
+
+# Build with sanitizers enabled for debugging
+build-sanitize:
+    libs="{{base_libs}}"; if [[ "{{arch}}" == aarch64* || "{{arch}}" == armv* ]]; then libs="$libs -latomic"; fi; \
+    cflags="-g -ggdb -O1 -Wall -Wextra -Wpedantic -Werror -std=c2x -fsanitize=address,undefined,leak -fno-omit-frame-pointer"; \
+    ${CC:-cc} $cflags {{sources}} mybot.c -o {{target}} $libs
 
 clean:
-    rm -f {{target}}
+    rm -rf {{target}} zig-out .zig-cache mybot

@@ -57,9 +57,9 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
 }
 
 // This is just called every 1 or 2 seconds. */
-void cron(sqlite3 *dbhandle) {
-    UNUSED(dbhandle);
-    printf("."); fflush(stdout);
+void cron([[maybe_unused]] sqlite3 *dbhandle) {
+    printf(".");
+    fflush(stdout);
 }
 
 int main(int argc, char **argv) {
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
         "* is *",
         "*\?",
         "!ls",
-        NULL,
+        nullptr,
     };
     startBot(TB_CREATE_KV_STORE, argc, argv, TB_FLAGS_NONE, handleRequest, cron, triggers);
     return 0; /* Never reached. */

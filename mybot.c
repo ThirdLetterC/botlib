@@ -16,11 +16,13 @@
  * specified as "triggers" in startBot() matched the message. Otherwise we
  * would spawn threads too often :) */
 void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
-    char buf[256];
+    constexpr size_t BUFFER_LEN = 256;
+    char buf[BUFFER_LEN];
     char *where = br->type == TB_TYPE_PRIVATE ? "privately" : "publicly";
     snprintf(buf, sizeof(buf), "I just %s received: %s", where, br->request);
 
-    int64_t sent_chat_id, sent_message_id;
+    int64_t sent_chat_id = 0;
+    int64_t sent_message_id = 0;
     botSendMessageAndGetInfo(br->target,buf,0,&sent_chat_id,&sent_message_id);
     printf("Sent message IDs: chat_id:%lld message_id:%lld\n",
         (long long) sent_chat_id, (long long) sent_message_id);
@@ -59,13 +61,16 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
         botSendMessage(br->target,"Ok, I'll remember.",br->msg_id);
     }
 
-    int reqlen = strlen(br->request);
+    const size_t reqlen = strlen(br->request);
     if (br->argc == 1 && reqlen && br->request[reqlen-1] == '?') {
         char *copy = strdup(br->request);
+        if (copy == nullptr) {
+            return;
+        }
         copy[reqlen-1] = 0;
         printf("Looking for key %s\n", copy);
         sds res = kvGet(dbhandle,copy);
-        if (res) {
+        if (res != nullptr) {
             botSendMessage(br->target,res,0);
         }
         sdsfree(res);
@@ -74,8 +79,7 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
 }
 
 // This is just called every 1 or 2 seconds. */
-void cron(sqlite3 *dbhandle) {
-    UNUSED(dbhandle);
+void cron([[maybe_unused]] sqlite3 *dbhandle) {
     printf("."); fflush(stdout);
 }
 
@@ -86,7 +90,7 @@ int main(int argc, char **argv) {
         "* is *",
         "*\?",
         "!ls",
-        NULL,
+        nullptr,
     };
     startBot(TB_CREATE_KV_STORE, argc, argv, TB_FLAGS_NONE, handleRequest, cron, triggers);
     return 0; /* Never reached. */
