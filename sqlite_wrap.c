@@ -274,14 +274,14 @@ void sqlEnd(sqlRow *row) {
 }
 
 /* Wrapper where the value len is obtained via strlen().*/
-bool kvSet(sqlite3 *dbhandle, const char *key, const char *value,
-           int64_t expire) {
+[[nodiscard]] bool kvSet(sqlite3 *dbhandle, const char *key,
+                         const char *value, int64_t expire) {
   return kvSetLen(dbhandle, key, value, strlen(value), expire);
 }
 
 /* Get the specified key and return it as an SDS string. If the value is
  * expired or does not exist nullptr is returned. */
-sds kvGet(sqlite3 *dbhandle, const char *key) {
+[[nodiscard]] sds kvGet(sqlite3 *dbhandle, const char *key) {
   sds value = nullptr;
   sqlRow row;
   const int rc =
