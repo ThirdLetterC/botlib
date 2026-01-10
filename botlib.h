@@ -77,12 +77,10 @@ void xfree(void *ptr);
 [[nodiscard]] sds makeGETBotRequest(const char *action, int *resptr,
                                     char **optlist, int numopt);
 [[nodiscard]] int botSendMessageAndGetInfo(int64_t target, sds text,
-                                           int64_t reply_to,
-                                           int64_t *chat_id,
+                                           int64_t reply_to, int64_t *chat_id,
                                            int64_t *message_id);
 [[nodiscard]] int botSendMessage(int64_t target, sds text, int64_t reply_to);
-[[nodiscard]] int botEditMessageText(int64_t chat_id, int message_id,
-                                     sds text);
+[[nodiscard]] int botEditMessageText(int64_t chat_id, int message_id, sds text);
 [[nodiscard]] int botSendImage(int64_t target, char *filename);
 [[nodiscard]] int botGetFile(BotRequest *br, const char *target_filename);
 [[nodiscard]] char *botGetUsername();

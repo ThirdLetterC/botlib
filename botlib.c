@@ -431,8 +431,7 @@ cleanup:
  * specific message (if reply_to is non zero).
  * Return 1 on success, 0 on error. */
 [[nodiscard]] int botSendMessageAndGetInfo(int64_t target, sds text,
-                                           int64_t reply_to,
-                                           int64_t *chat_id,
+                                           int64_t reply_to, int64_t *chat_id,
                                            int64_t *message_id) {
   char *options[10];
   int optlen = 4;

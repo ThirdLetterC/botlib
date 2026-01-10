@@ -274,8 +274,8 @@ void sqlEnd(sqlRow *row) {
 }
 
 /* Wrapper where the value len is obtained via strlen().*/
-[[nodiscard]] bool kvSet(sqlite3 *dbhandle, const char *key,
-                         const char *value, int64_t expire) {
+[[nodiscard]] bool kvSet(sqlite3 *dbhandle, const char *key, const char *value,
+                         int64_t expire) {
   return kvSetLen(dbhandle, key, value, strlen(value), expire);
 }
 
@@ -284,9 +284,8 @@ void sqlEnd(sqlRow *row) {
 [[nodiscard]] sds kvGet(sqlite3 *dbhandle, const char *key) {
   sds value = nullptr;
   sqlRow row;
-  const int rc =
-      sqlSelect(dbhandle, &row, "SELECT expire,value FROM KeyValue WHERE key=?s",
-                key);
+  const int rc = sqlSelect(
+      dbhandle, &row, "SELECT expire,value FROM KeyValue WHERE key=?s", key);
   if (rc == SQLITE_ROW && sqlNextRow(&row)) {
     int64_t expire = row.col[0].i;
     if (expire && expire < time(nullptr)) {

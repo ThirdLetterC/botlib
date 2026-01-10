@@ -23,9 +23,8 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
 
   int64_t sent_chat_id = 0;
   int64_t sent_message_id = 0;
-  [[maybe_unused]] int sent_ok =
-      botSendMessageAndGetInfo(br->target, buf, 0, &sent_chat_id,
-                               &sent_message_id);
+  [[maybe_unused]] int sent_ok = botSendMessageAndGetInfo(
+      br->target, buf, 0, &sent_chat_id, &sent_message_id);
   printf("Sent message IDs: chat_id:%lld message_id:%lld\n",
          (long long)sent_chat_id, (long long)sent_message_id);
 
@@ -75,8 +74,7 @@ void handleRequest(sqlite3 *dbhandle, BotRequest *br) {
     printf("Looking for key %s\n", copy);
     sds res = kvGet(dbhandle, copy);
     if (res != nullptr) {
-      [[maybe_unused]] int sent =
-          botSendMessage(br->target, res, 0);
+      [[maybe_unused]] int sent = botSendMessage(br->target, res, 0);
     }
     sdsfree(res);
     free(copy);
