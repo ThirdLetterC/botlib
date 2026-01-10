@@ -404,7 +404,7 @@ cleanup:
  * ===========================================================================*/
 
 /* Return the bot username. */
-char *botGetUsername() {
+[[nodiscard]] char *botGetUsername() {
   int res;
 
   if (Bot.username)
@@ -856,7 +856,7 @@ void botMain() {
   int64_t nextid = -100; /* Start getting the last 100 messages. */
   int previd;
 
-  botGetUsername(); // Will cache Bot.username as side effect.
+  [[maybe_unused]] char *username = botGetUsername(); // Cached in Bot.username.
   while (1) {
     previd = nextid;
     nextid = botProcessUpdates(nextid, 1);

@@ -301,7 +301,6 @@ void sqlEnd(sqlRow *row) {
 }
 
 /* Delete the key if it exists. */
-void kvDel(sqlite3 *dbhandle, const char *key) {
-  [[maybe_unused]] bool deleted =
-      sqlQuery(dbhandle, "DELETE FROM KeyValue WHERE key=?s", key);
+[[nodiscard]] bool kvDel(sqlite3 *dbhandle, const char *key) {
+  return sqlQuery(dbhandle, "DELETE FROM KeyValue WHERE key=?s", key);
 }

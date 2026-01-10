@@ -85,7 +85,7 @@ void xfree(void *ptr);
                                      sds text);
 [[nodiscard]] int botSendImage(int64_t target, char *filename);
 [[nodiscard]] int botGetFile(BotRequest *br, const char *target_filename);
-char *botGetUsername();
+[[nodiscard]] char *botGetUsername();
 void freeBotRequest(BotRequest *br);
 
 /* Database. */
@@ -94,7 +94,7 @@ void freeBotRequest(BotRequest *br);
 [[nodiscard]] bool kvSet(sqlite3 *dbhandle, const char *key, const char *value,
                          int64_t expire);
 [[nodiscard]] sds kvGet(sqlite3 *dbhandle, const char *key);
-void kvDel(sqlite3 *dbhandle, const char *key);
+[[nodiscard]] bool kvDel(sqlite3 *dbhandle, const char *key);
 void sqlEnd(sqlRow *row);
 [[nodiscard]] bool sqlNextRow(sqlRow *row);
 [[nodiscard]] int64_t sqlInsert(sqlite3 *dbhandle, const char *sql, ...);
