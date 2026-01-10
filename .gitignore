@@ -1,0 +1,8 @@
+mybot
+*.dSYM
+apikey.txt
+mybot.sqlite
+
+.zig-build/
+.zig-cache/
+zig-out/
