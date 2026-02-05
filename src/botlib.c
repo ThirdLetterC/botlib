@@ -205,6 +205,8 @@ int strmatch(const char *pattern, int patternLen, const char *string,
  * ========================================================================= */
 
 void *xmalloc(size_t size) {
+  if (size == 0)
+    size = 1;
   auto p = calloc(1, size);
   if (p == nullptr) {
     printf("Out of memory: calloc(%zu, 1)", size);
@@ -214,6 +216,8 @@ void *xmalloc(size_t size) {
 }
 
 void *xrealloc(void *ptr, size_t size) {
+  if (size == 0)
+    size = 1;
   auto p = realloc(ptr, size);
   if (p == nullptr) {
     printf("Out of memory: realloc(%zu)", size);
@@ -255,37 +259,42 @@ size_t makeHTTPGETCallWriterFILE(char *ptr, [[maybe_unused]] size_t size,
   CURL *curl;
   CURLcode res;
   sds body = sdsempty();
+  if (resptr)
+    *resptr = 0;
 
   curl = curl_easy_init();
-  if (curl) {
-    curl_easy_setopt(curl, CURLOPT_URL, url);
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, makeHTTPGETCallWriterSDS);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
-    curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1L);
-    curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
-    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15);
-
-    /* Perform the request, res will get the return code */
-    res = curl_easy_perform(curl);
-    if (resptr)
-      *resptr = res == CURLE_OK ? 1 : 0;
-
-    /* Check for errors */
-    if (res != CURLE_OK) {
-      const char *errstr = curl_easy_strerror(res);
-      body = sdscat(body, errstr);
-    } else {
-      /* Return 0 if the request worked but returned a 500 code. */
-      long code;
-      curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
-      if ((code == 500 || code == 400) && resptr)
-        *resptr = 0;
-    }
-
-    /* always cleanup */
-    curl_easy_cleanup(curl);
+  if (curl == nullptr) {
+    body = sdscat(body, "curl_easy_init failed");
+    return body;
   }
+
+  curl_easy_setopt(curl, CURLOPT_URL, url);
+  curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, makeHTTPGETCallWriterSDS);
+  curl_easy_setopt(curl, CURLOPT_WRITEDATA, &body);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYPEER, 1L);
+  curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 1L);
+  curl_easy_setopt(curl, CURLOPT_TIMEOUT, 15);
+  curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15);
+
+  /* Perform the request, res will get the return code */
+  res = curl_easy_perform(curl);
+  if (resptr)
+    *resptr = res == CURLE_OK ? 1 : 0;
+
+  /* Check for errors */
+  if (res != CURLE_OK) {
+    const char *errstr = curl_easy_strerror(res);
+    body = sdscat(body, errstr);
+  } else {
+    /* Return 0 if the request worked but returned a 500 code. */
+    long code;
+    curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &code);
+    if ((code == 500 || code == 400) && resptr)
+      *resptr = 0;
+  }
+
+  /* always cleanup */
+  curl_easy_cleanup(curl);
   return body;
 }
 
@@ -296,21 +305,36 @@ size_t makeHTTPGETCallWriterFILE(char *ptr, [[maybe_unused]] size_t size,
 [[nodiscard]] sds makeHTTPGETCallOpt(const char *url, int *resptr,
                                      char **optlist, int optnum) {
   sds fullurl = sdsnew(url);
+  sds body = sdsempty();
+  if (resptr)
+    *resptr = 0;
   if (optnum)
     fullurl = sdscatlen(fullurl, "?", 1);
   CURL *curl = curl_easy_init();
+  if (curl == nullptr) {
+    body = sdscat(body, "curl_easy_init failed");
+    goto cleanup;
+  }
   for (int j = 0; j < optnum; j++) {
     if (j > 0)
       fullurl = sdscatlen(fullurl, "&", 1);
     fullurl = sdscat(fullurl, optlist[j * 2]);
     fullurl = sdscatlen(fullurl, "=", 1);
-    char *escaped =
-        curl_easy_escape(curl, optlist[j * 2 + 1], strlen(optlist[j * 2 + 1]));
+    char *escaped = curl_easy_escape(curl, optlist[j * 2 + 1],
+                                     strlen(optlist[j * 2 + 1]));
+    if (escaped == nullptr) {
+      body = sdscat(body, "curl_easy_escape failed");
+      goto cleanup;
+    }
     fullurl = sdscat(fullurl, escaped);
     curl_free(escaped);
   }
-  curl_easy_cleanup(curl);
-  sds body = makeHTTPGETCall(fullurl, resptr);
+  sdsfree(body);
+  body = makeHTTPGETCall(fullurl, resptr);
+
+cleanup:
+  if (curl)
+    curl_easy_cleanup(curl);
   sdsfree(fullurl);
   return body;
 }
@@ -410,8 +434,10 @@ cleanup:
   if (Bot.username)
     return Bot.username;
   sds body = makeGETBotRequest("getMe", &res, nullptr, 0);
-  if (res == 0)
+  if (res == 0) {
+    sdsfree(body);
     return nullptr;
+  }
 
   JSON_Value *json = json_parse_string(body);
   if (json == nullptr) {
@@ -544,15 +570,18 @@ cleanup:
 
   /* 2. Get the file content. */
   CURL *curl = curl_easy_init();
+  const char *output_filename = target_filename ? target_filename : br->file_id;
+  FILE *fp = nullptr;
+  int retval = 0;
   if (!curl)
-    return 0; // Error.
+    goto cleanup; // Error.
 
   /* We need to open a file for writing. We will be
    * using the curl callback in order to append to the
    * file. */
-  FILE *fp = fopen(target_filename ? target_filename : br->file_id, "w");
+  fp = fopen(output_filename, "wb");
   if (fp == nullptr)
-    return 0; // We can't continue without the target file.
+    goto cleanup; // We can't continue without the target file.
 
   char url[1024];
   snprintf(url, sizeof(url), "https://api.telegram.org/file/bot%s/%s",
@@ -566,12 +595,16 @@ cleanup:
   curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 15);
 
   /* Perform the request and cleanup. */
-  int retval = curl_easy_perform(curl) == CURLE_OK ? 1 : 0;
-  curl_easy_cleanup(curl);
-  fclose(fp);
+  retval = curl_easy_perform(curl) == CURLE_OK ? 1 : 0;
+
+cleanup:
+  if (curl)
+    curl_easy_cleanup(curl);
+  if (fp)
+    fclose(fp);
   /* Best effort removal of incomplete file. */
-  if (retval == 0)
-    unlink(br->file_id);
+  if (retval == 0 && fp != nullptr)
+    unlink(output_filename);
   sdsfree(file_path);
   return retval;
 }
@@ -646,6 +679,10 @@ void dbClose() {
 void *botHandleRequest(void *arg) {
   DbHandle = dbInit(nullptr);
   BotRequest *br = arg;
+  if (DbHandle == nullptr) {
+    freeBotRequest(br);
+    return nullptr;
+  }
 
   /* Parse the request as a command composed of arguments. */
   br->argv = sdssplitargs(br->request, &br->argc);
@@ -829,6 +866,9 @@ int64_t botProcessUpdates(int64_t offset, int timeout) {
       freeBotRequest(br);
       continue;
     }
+    if (pthread_detach(tid) != 0) {
+      printf("warning: failed to detach worker thread\n");
+    }
     if (Bot.verbose)
       printf("Starting thread to serve: \"%s\"\n", br->request);
 
@@ -916,6 +956,7 @@ void resetBotStats() {
     } else if (!strcmp(argv[j], "--verbose")) {
       Bot.verbose = 1;
     } else if (!strcmp(argv[j], "--apikey") && morearg) {
+      sdsfree(Bot.apikey);
       Bot.apikey = sdsnew(argv[++j]);
     } else if (!strcmp(argv[j], "--dbfile") && morearg) {
       Bot.dbfile = argv[++j];
