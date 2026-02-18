@@ -1,5 +1,4 @@
-#ifndef TELEGRAM_BOT_H
-#define TELEGRAM_BOT_H
+#pragma once
 
 #include <sqlite3.h>
 #include <stddef.h>
@@ -105,5 +104,3 @@ void sqlEnd(sqlRow *row);
 
 /* Json */
 [[nodiscard]] JSON_Value *json_select(JSON_Value *value, const char *fmt, ...);
-
-#endif

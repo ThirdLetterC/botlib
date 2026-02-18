@@ -1,5 +1,4 @@
-#ifndef SQLITE_WRAPPER_H
-#define SQLITE_WRAPPER_H
+#pragma once
 
 #include <sqlite3.h>
 #include <stddef.h>
@@ -24,5 +23,3 @@ typedef struct sqlRow {
                          sqlite3_step() since it was called by the
                          query function. */
 } sqlRow;
-
-#endif

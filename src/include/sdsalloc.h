@@ -36,12 +36,9 @@
  * the include of your alternate allocator if needed (not needed in order
  * to use the default libc allocator). */
 
-#ifndef __SDS_ALLOC_H__
-#define __SDS_ALLOC_H__
+#pragma once
 
 #include "xmalloc.h"
 #define s_malloc xmalloc
 #define s_realloc xrealloc
 #define s_free xfree
-
-#endif

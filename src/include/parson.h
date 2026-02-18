@@ -23,8 +23,7 @@
  THE SOFTWARE.
 */
 
-#ifndef parson_parson_h
-#define parson_parson_h
+#pragma once
 
 #ifdef __cplusplus
 extern "C" {
@@ -335,6 +334,4 @@ JSON_Boolean json_boolean(const JSON_Value *value);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
